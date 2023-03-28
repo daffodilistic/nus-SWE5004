@@ -35,3 +35,4 @@ yarn-error.log*
 # Ignore python cache files and virtual environment
 __pycache__/
 venv/
+docker/volumes/
