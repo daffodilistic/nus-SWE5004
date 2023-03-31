@@ -6,12 +6,16 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME:mariotoilet
       - MONGO_INITDB_ROOT_PASSWORD:luigismansion
+    ports:
+      - 27017:27017
     volumes:
       - ./docker/volumes/mongo/data/db:/data/db  
   mongo-express:
     image: mongo-express:0.54.0
     # NOTE MongoDB has a slow startup time!
     # restart: always
+    depends_on:
+      - mongo
     ports:
       - 9091:8081
     environment:
