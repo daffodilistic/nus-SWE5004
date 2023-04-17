@@ -1,22 +1,24 @@
+import datetime
 from typing import List
 from typing import Optional
-from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+from marshmallow import Schema, fields
 
-class Base(DeclarativeBase):
-    pass
+# Base class
+class Device:
+    def __init__(self, mac_address, last_seen, first_seen, client_secret):
+        self.mac_address = mac_address
+        self.created_at = datetime.datetime.now()
+        self.last_seen = last_seen
+        self.first_seen = first_seen
+        self.client_secret = client_secret
 
-class User(Base):
-    __tablename__ = "users"
+    def __repr__(self):
+        return "<Device(name={self.name!r})>".format(self=self)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(32))
-    email: Mapped[str] = mapped_column(String(256))
-    password: Mapped[str] = mapped_column(String(256))
-
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r}, email={self.email!r})"
+# Schema to serialize and deserialize data
+class DeviceSchema(Schema):
+    mac_address = fields.Str()
+    created_at = fields.DateTime()
+    last_seen = fields.DateTime()
+    first_seen = fields.DateTime()
+    client_secret = fields.Str()
