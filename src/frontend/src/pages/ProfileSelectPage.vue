@@ -28,7 +28,7 @@
 import { defineComponent, ref } from "vue";
 
 export default defineComponent({
-  name: "IndexPage",
+  name: "ProfileSelectPage",
   setup() {
     const eventsFromServer = ref([
       // { data: 'hii', time: '32234' },
