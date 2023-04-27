@@ -1,23 +1,16 @@
 <template>
-  <q-page>
-    <div class="q-pa-md">
-      <div class="row flex flex-center">
-        <!-- <div class="col flex flex-center">
-          <q-card class="user-profile fit">
-            <q-img src="https://cdn.quasar.dev/img/parallax2.jpg">
-              <div class="absolute-bottom text-subtitle2 text-center">
-                Title
-              </div>
-            </q-img>
-          </q-card>
-        </div> -->
-        <div>
-          <q-btn outline color="primary" label="Add New User" />
-        </div>
-        <div>
-          <button @click="connect()">Connect</button>
-          <button @click="disconnect()">Disconnect</button>
-        </div>
+  <q-page class="bg-grey-10">
+    <div class="row fixed-center">
+      <!-- <div class="col">
+        <q-avatar class="self-center" size="16em">
+          <img src="https://cdn.quasar.dev/img/avatar.png">
+        </q-avatar>
+      </div> -->
+      <div class="col column">
+        <q-avatar size="16em">
+          <img src="https://cdn.quasar.dev/img/avatar.png">
+        </q-avatar>
+        <h4 class="q-mt-sm self-center text-white">UserName</h4>
       </div>
     </div>
   </q-page>
