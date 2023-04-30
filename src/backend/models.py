@@ -4,16 +4,6 @@ from typing import Optional
 import uuid
 from marshmallow import Schema, fields
 
-# Base class
-class User:
-    def __init__(self, name, password, account_guid):
-        self.name = name
-        self.password = password
-        self.account_guid = account_guid
-
-    def __repr__(self):
-        return "<User(name={self.name!r})>".format(self=self)
-
 # Schema to serialize and deserialize data
 class UserSchema(Schema):
     name = fields.Str()

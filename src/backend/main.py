@@ -6,24 +6,39 @@ from fastapi import HTTPException, Request, FastAPI
 from marshmallow import ValidationError
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from sqlalchemy import engine, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, Integer, UUID
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from bson.json_util import dumps
 
 import datetime
-import datetime
 import secrets
 from typing import Union
 from fastapi import FastAPI
 from randmac import RandMac
+from database import User
 from models import Device, DeviceSchema, UserSchema
 
+import settings as config
 # In-memory database
 # engine = create_engine("sqlite:///mario_toilet.sqlite", echo=True)
 # Base.metadata.create_all(engine)
 
 app = FastAPI()
-mongodb_client = MongoClient('mongodb://mariotoilet:luigismansion@10.148.0.2:27017/?authSource=mariotoilet', uuidRepresentation='standard')
+mongodb_client = MongoClient(
+    'mongodb://mariotoilet:luigismansion@10.148.0.2:27017/?authSource=mariotoilet', uuidRepresentation='standard')
+
+connection_url = engine.URL.create(
+    drivername=config.SQLALCHEMY_DRIVERNAME,
+    username=config.SQLALCHEMY_USERNAME,
+    password=config.SQLALCHEMY_PASSWORD,
+    host=config.SQLALCHEMY_HOST,
+    database=config.SQLALCHEMY_DATABASE,
+)
+engine = create_engine(connection_url)
+
 
 @app.get("/")
 def read_root():
@@ -43,7 +58,7 @@ async def create_user(request: Request):
         users: Collection = db['users']
 
         user_id = users.insert_one(new_user)
-        
+
         user_obj = users.find_one({"_id": user_id.inserted_id})
         new_user["_id"] = str(user_obj.get("_id"))
 
@@ -55,12 +70,11 @@ async def create_user(request: Request):
 
 @app.get("/users")
 async def retrieve_user():
-    db = mongodb_client['mariotoilet']
-    users: Collection = db['users']
-    user_list = list(users.find({}))
-    for user in user_list:
-        user["_id"] = str(user.get("_id"))
-    return user_list
+    # Get users from MySQL database using SQLAlchemy
+    with Session(engine) as session:
+        result = session.execute(select(User))
+        users = result.scalars().all()
+        return users
 
 
 @app.get("/api/devices/enroll")
