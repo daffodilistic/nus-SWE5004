@@ -1,8 +1,8 @@
 {
-  "name": "smart-toilet",
+  "name": "mario-toilet",
   "version": "0.0.1",
-  "description": "A Smart Toilet Project",
-  "productName": "SmartToilet",
+  "description": "MarioToilet",
+  "productName": "MarioToilet",
   "author": "Soh Thiam Hing <daffodilistic@gmail.com>",
   "private": true,
   "scripts": {

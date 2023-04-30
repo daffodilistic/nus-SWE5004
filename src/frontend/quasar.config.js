@@ -154,9 +154,9 @@ module.exports = configure(function (ctx) {
       
 
       manifest: {
-        name: `SmartToilet`,
-        short_name: `SmartToilet`,
-        description: `A Smart Toilet Project`,
+        name: `MarioToilet`,
+        short_name: `MarioToilet`,
+        description: `MarioToilet`,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
