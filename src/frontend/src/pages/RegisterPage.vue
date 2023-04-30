@@ -72,6 +72,8 @@ export default defineComponent({
     const username = ref(null);
     const password = ref(null);
     const accept = ref(false);
+    // declaring a variable for notification so that it can be updated
+    let notif = null;
 
     const register = () => {
       api
@@ -89,13 +91,16 @@ export default defineComponent({
         )
         .then((response) => {
           if (response !== null && response.lastRowId !== null) {
-            $q.notify({
-              group: false, // required to be updatable
-              timeout: 0, // we want to be in control when it gets dismissed
+            notif({
+              timeout: 1,
               spinner: false,
               message: "Registration successful",
               caption: "100%",
             });
+            // Store response in session storage
+            sessionStorage.setItem("user", JSON.stringify(response));
+            // Navigate to Profiles page
+            $router.push("/profiles");
           } else {
             $q.notify({
               color: "negative",
@@ -130,7 +135,7 @@ export default defineComponent({
             message: "You need to accept the license and terms first",
           });
         } else {
-          $q.notify({
+          notif = $q.notify({
             group: false, // required to be updatable
             timeout: 0, // we want to be in control when it gets dismissed
             spinner: true,

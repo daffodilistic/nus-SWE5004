@@ -2,9 +2,11 @@
   <q-page class="bg-grey-10">
     <div class="row fixed-center">
       <div class="col column">
-        <h4 class="q-my-sm self-center text-white">MarioToilet Login</h4>
-        <h6 class="q-my-sm self-center text-white">Please Login</h6>
-        <q-btn @click="login" color="primary" label="login"></q-btn>
+        <h4 class="q-my-sm self-center text-white">Welcome to MarioToilet</h4>
+        <h6 class="q-my-sm self-center text-white">Please select an option</h6>
+        <q-btn to="/login" color="primary" label="login"></q-btn>
+        <q-space class="q-my-sm" />
+        <q-btn @click="register" color="secondary" label="register"></q-btn>
       </div>
     </div>
   </q-page>
@@ -22,7 +24,7 @@
 import { defineComponent, ref } from "vue";
 
 export default defineComponent({
-  name: "LoginPage",
+  name: "IndexPage",
   setup() {
     const eventsFromServer = ref([
       // { data: 'hii', time: '32234' },
