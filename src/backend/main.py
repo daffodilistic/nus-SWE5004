@@ -1,6 +1,9 @@
 import json
+import traceback
 from typing import Union
-from fastapi import Request, FastAPI
+from bson import UuidRepresentation
+from fastapi import HTTPException, Request, FastAPI
+from marshmallow import ValidationError
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
@@ -13,14 +16,14 @@ import secrets
 from typing import Union
 from fastapi import FastAPI
 from randmac import RandMac
-from models import Device, DeviceSchema
+from models import Device, DeviceSchema, UserSchema
 
 # In-memory database
 # engine = create_engine("sqlite:///mario_toilet.sqlite", echo=True)
 # Base.metadata.create_all(engine)
 
 app = FastAPI()
-
+mongodb_client = MongoClient('mongodb://mariotoilet:luigismansion@10.148.0.2:27017/?authSource=mariotoilet', uuidRepresentation='standard')
 
 @app.get("/")
 def read_root():
@@ -29,24 +32,34 @@ def read_root():
 
 @app.post("/users")
 async def create_user(request: Request):
-    client = MongoClient('mongodb://localhost:27017/')
-    db = client['mariotoilet']
-    users: Collection = db['users']
-    user = await request.json()
-    user_id = users.insert_one(user)
-    user = users.find_one({"_id": user_id.inserted_id})
-    user["_id"] = str(user.pop("_id"))
-    return {"user": user}
+    json_data = await request.json()
+    if not json_data:
+        raise HTTPException(status_code=400, detail="No input data provided")
+    try:
+        schema_validator = UserSchema()
+        new_user = schema_validator.load(json_data)
+
+        db = mongodb_client['mariotoilet']
+        users: Collection = db['users']
+
+        user_id = users.insert_one(new_user)
+        
+        user_obj = users.find_one({"_id": user_id.inserted_id})
+        new_user["_id"] = str(user_obj.get("_id"))
+
+        return new_user
+    except ValidationError as err:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=422, detail=err.messages)
 
 
 @app.get("/users")
 async def retrieve_user():
-    client = MongoClient('mongodb://localhost:27017/')
-    db = client['mariotoilet']
+    db = mongodb_client['mariotoilet']
     users: Collection = db['users']
     user_list = list(users.find({}))
     for user in user_list:
-        user["_id"] = str(user.pop("_id"))
+        user["_id"] = str(user.get("_id"))
     return user_list
 
 
