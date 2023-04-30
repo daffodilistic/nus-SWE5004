@@ -36,3 +36,4 @@ yarn-error.log*
 __pycache__/
 venv/
 docker/volumes/
+src/frontend/dist/
