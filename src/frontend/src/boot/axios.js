@@ -6,7 +6,7 @@ import axios from 'axios'
 const serverUrl =
 process.env.NODE_ENV === "production"
   ? "YOUR_PRODUCTION_SERVER_URL"
-  : "https://19k36m49u9.execute-api.us-east-1.amazonaws.com/prod";
+  : "https://api.mariotoilet.xyz/v1";
 const api = axios.create({ baseURL: serverUrl })
 
 export default boot(({ app }) => {
