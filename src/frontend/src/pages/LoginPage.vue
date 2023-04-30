@@ -4,7 +4,34 @@
       <div class="col column">
         <h4 class="q-my-sm self-center text-white">MarioToilet Login</h4>
         <h6 class="q-my-sm self-center text-white">Please Login</h6>
-        <q-btn @click="login" color="primary" label="login"></q-btn>
+        <q-input
+          dark
+          filled
+          v-model="username"
+          label="Username *"
+          lazy-rules
+          :rules="[(val) => (val && val.length > 0) || 'Please type something']"
+        />
+        <q-input
+          dark
+          filled
+          v-model="password"
+          label="Password *"
+          :type="isPwd ? 'password' : 'text'"
+          lazy-rules
+          :rules="[(val) => (val && val.length > 0) || 'Please type something']"
+        >
+          <template v-slot:append>
+            <q-icon
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
+            />
+          </template>
+        </q-input>
+        <q-btn @click="onLogin" color="primary" label="login"></q-btn>
+        <q-space class="q-my-sm" />
+        <q-btn flat to="/" color="secondary" label="Back" />
       </div>
     </div>
   </q-page>
@@ -20,35 +47,94 @@
 
 <script>
 import { defineComponent, ref } from "vue";
+import { useQuasar } from "quasar";
+import { api } from "boot/axios";
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "LoginPage",
   setup() {
-    const eventsFromServer = ref([
-      // { data: 'hii', time: '32234' },
-      // { data: 'hii324', time: '3223422' },
-    ]);
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "YOUR_WEBSOCKET_URL"
-        : "ws://localhost:8000/events";
+    const $router = useRouter();
+    const $q = useQuasar();
+    const username = ref(null);
+    const password = ref(null);
+    let isPwd = ref(true);
+    // declaring a variable for notification so that it can be updated
+    let notif = null;
 
-    const socket = new WebSocket(serverUrl);
-    socket.addEventListener("open", (event) => {
-      console.log("Connected to server");
-    });
+    const login = () => {
+      api
+        .post(
+          "/login",
+          {
+            username: username.value,
+            password: password.value,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then((response) => {
+          if (response !== null && response.lastRowId !== null) {
+            notif({
+              timeout: 1,
+              spinner: false,
+              message: "Login successful",
+              caption: "100%",
+            });
+            // Store response in session storage
+            sessionStorage.setItem("user", JSON.stringify(response));
+            // Navigate to Profiles page
+            $router.push("/profiles");
+          } else {
+            notif({
+              timeout: 1,
+              color: "negative",
+              spinner: false,
+              message: "Login failed",
+              caption: "100%",
+            });
+          }
+        })
+        .catch((e) => {
+          // print error to console
+          console.error(e);
+          if (e.response.status === 401) {
+            notif({
+              timeout: 1,
+              color: "negative",
+              spinner: false,
+              message: "Login failed",
+              caption: "100%",
+            });
+          } else {
+            $q.notify({
+              color: "negative",
+              position: "top",
+              message: "Loading failed",
+              icon: "report_problem",
+            });
+          }
+        });
+    };
 
-    socket.addEventListener("message", function (event) {
-      console.log("Message from server ", event.data);
-      eventsFromServer.value.push({ time: new Date(), data: event.data });
-    });
-
-    return { eventsFromServer };
-  },
-  methods: {
-    register() {
-      this.$router.push("/register");
-    },
+    return {
+      username,
+      password,
+      isPwd,
+      onLogin() {
+        notif = $q.notify({
+          group: false, // required to be updatable
+          timeout: 0, // we want to be in control when it gets dismissed
+          spinner: true,
+          message: "Logging in...",
+          caption: "0%",
+        });
+        login();
+      },
+    };
   },
 });
 </script>

@@ -23,12 +23,21 @@
               filled
               v-model="password"
               label="Password *"
+              :type="isPwd ? 'password' : 'text'"
               hint="A strong password is recommended"
               lazy-rules
               :rules="[
                 (val) => (val && val.length > 0) || 'Please type something',
               ]"
-            />
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd = !isPwd"
+                />
+              </template>
+            </q-input>
             <q-toggle
               dark
               class="text-white"
@@ -44,6 +53,8 @@
                 flat
                 class="q-ml-sm"
               />
+              <q-space class="q-my-sm" />
+              <q-btn flat to="/" color="secondary" label="Back" />
             </div>
           </q-form>
         </div>
@@ -72,6 +83,7 @@ export default defineComponent({
     const username = ref(null);
     const password = ref(null);
     const accept = ref(false);
+    let isPwd = ref(true);
     // declaring a variable for notification so that it can be updated
     let notif = null;
 
@@ -100,7 +112,7 @@ export default defineComponent({
             // Store response in session storage
             sessionStorage.setItem("user", JSON.stringify(response));
             // Navigate to Profiles page
-            $router.push("/profiles");
+            this.$router.push("/profiles");
           } else {
             $q.notify({
               color: "negative",
@@ -125,6 +137,7 @@ export default defineComponent({
     return {
       username,
       password,
+      isPwd,
       accept,
       onSubmit() {
         if (accept.value !== true) {
