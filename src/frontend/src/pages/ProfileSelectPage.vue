@@ -71,26 +71,6 @@ import { api } from "boot/axios";
 export default defineComponent({
   name: "ProfileSelectPage",
   setup() {
-    const eventsFromServer = ref([
-      // { data: 'hii', time: '32234' },
-      // { data: 'hii324', time: '3223422' },
-    ]);
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "YOUR_WEBSOCKET_URL"
-        : "ws://localhost:8000/events";
-    let familyMembers = ref([]);
-
-    const socket = new WebSocket(serverUrl);
-    socket.addEventListener("open", (event) => {
-      console.log("Connected to server");
-    });
-
-    socket.addEventListener("message", function (event) {
-      console.log("Message from server ", event.data);
-      eventsFromServer.value.push({ time: new Date(), data: event.data });
-    });
-
     onMounted(() => {
       // Get family members from session storage
       const accountUsers = JSON.parse(sessionStorage.getItem("family_members") ?? "[]");
