@@ -72,8 +72,11 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <p class="">Your urine is acidic. We recommend you to have more of the following foods in your diet to balance your pH level.</p>
-          <p class="text-bold">{{recommendedDiet}}</p>
+          <p class="">
+            Your urine is acidic. We recommend you to have more of the following
+            foods in your diet to balance your pH level.
+          </p>
+          <p class="text-bold">{{ recommendedDiet }}</p>
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
@@ -97,7 +100,7 @@ import { defineComponent, onMounted, ref } from "vue";
 import WebSocketComponent from "src/components/WebSocketComponent.vue";
 import dietList from "src/libs/dietList.js";
 import { api, apiML } from "boot/axios";
-import QSpinnerGears from 'quasar/src/components/spinner/QSpinnerGears.js';
+import QSpinnerGears from "quasar/src/components/spinner/QSpinnerGears.js";
 
 const currentUser = ref({
   person_name: "Wu Ming Zhi (无名子)",
@@ -185,13 +188,17 @@ export default defineComponent({
         delete dietData.person_id;
         const mlResponse = await apiML.post("/predictph", dietData);
         console.log(mlResponse.data);
-        
+
         // Get recommended diet
         const predictedPh = mlResponse.data.body.predicted_urine;
         console.log("Predicted pH is ", predictedPh);
-        const dietResponse = await apiML.post("/getRecommendedDiet", predictedPh);
+        const dietResponse = await apiML.post(
+          "/getRecommendedDiet",
+          predictedPh
+        );
         console.log(dietResponse.data);
-        this.recommendedDiet = dietResponse.data.body.recommended_items.join(", ");
+        this.recommendedDiet =
+          dietResponse.data.body.recommended_items.join(", ");
 
         this.loading = false;
         spinnerHandle({
@@ -215,7 +222,25 @@ export default defineComponent({
         }
       }
     },
-    async analyzeMyData() {},
+    async analyzeMyData() {
+      // TODO need to call https://19k36m49u9.execute-api.us-east-1.amazonaws.com/prod/updateurineph
+      //this.loading = true;
+      this.$q.notify({
+        message: "Waiting for device...",
+        type: "warning",
+        spinner: true,
+        timeout: 0,
+        actions: [
+          {
+            label: "Cancel",
+            color: "red",
+            handler: () => {
+              /* ... */
+            },
+          },
+        ],
+      });
+    },
   },
   components: {
     WebSocketComponent,
