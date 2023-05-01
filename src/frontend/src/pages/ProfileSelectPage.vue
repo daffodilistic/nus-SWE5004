@@ -93,7 +93,7 @@ export default defineComponent({
 
     onMounted(() => {
       // Get family members from session storage
-      const accountUsers = JSON.parse(sessionStorage.getItem("family_members"));
+      const accountUsers = JSON.parse(sessionStorage.getItem("family_members") ?? "[]");
       // console.log(accountUsers);
       if (accountUsers) {
         familyMembers.value = accountUsers;
