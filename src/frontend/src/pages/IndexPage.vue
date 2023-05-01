@@ -21,33 +21,22 @@
 </style>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "IndexPage",
   setup() {
-    const eventsFromServer = ref([
-      // { data: 'hii', time: '32234' },
-      // { data: 'hii324', time: '3223422' },
-    ]);
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "YOUR_WEBSOCKET_URL"
-        : "ws://localhost:8000/events";
+    const $router = useRouter();
 
-    const socket = new WebSocket(serverUrl);
-    socket.addEventListener("open", (event) => {
-      console.log("Connected to server");
+    onMounted(async () => {
+      // If logged in, redirect to profile select page
+      if (sessionStorage.getItem("account")) {
+        $router.replace("/profiles");
+      }
     });
-
-    socket.addEventListener("message", function (event) {
-      console.log("Message from server ", event.data);
-      eventsFromServer.value.push({ time: new Date(), data: event.data });
-    });
-
-    return { eventsFromServer };
   },
-  methods: {
+  methods: {   
     register() {
       this.$router.push("/register");
     },

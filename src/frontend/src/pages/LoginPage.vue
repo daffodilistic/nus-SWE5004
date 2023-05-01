@@ -49,7 +49,7 @@
 import { defineComponent, ref } from "vue";
 import { useQuasar } from "quasar";
 import { api } from "boot/axios";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "LoginPage",
@@ -58,13 +58,19 @@ export default defineComponent({
     const $q = useQuasar();
     const username = ref(null);
     const password = ref(null);
-    let isPwd = ref(true);
+    const isPwd = ref(true);
     // declaring a variable for notification so that it can be updated
     let notif = null;
 
-    const login = () => {
-      api
-        .post(
+    const getFamilyMembers = async (account_id) => {
+      const response = await api.get(`/users?account_id=${account_id}`);
+      // console.log(response);
+      return response.data;
+    };
+
+    const login = async () => {
+      try {
+        const response = await api.post(
           "/login",
           {
             username: username.value,
@@ -75,49 +81,43 @@ export default defineComponent({
               "Content-Type": "application/json",
             },
           }
-        )
-        .then((response) => {
-          if (response !== null && response.lastRowId !== null) {
-            notif({
-              timeout: 1,
-              spinner: false,
-              message: "Login successful",
-              caption: "100%",
-            });
-            // Store response in session storage
-            sessionStorage.setItem("user", JSON.stringify(response));
-            // Navigate to Profiles page
-            $router.push("/profiles");
-          } else {
-            notif({
-              timeout: 1,
-              color: "negative",
-              spinner: false,
-              message: "Login failed",
-              caption: "100%",
-            });
-          }
-        })
-        .catch((e) => {
-          // print error to console
-          console.error(e);
-          if (e.response.status === 401) {
-            notif({
-              timeout: 1,
-              color: "negative",
-              spinner: false,
-              message: "Login failed",
-              caption: "100%",
-            });
-          } else {
-            $q.notify({
-              color: "negative",
-              position: "top",
-              message: "Loading failed",
-              icon: "report_problem",
-            });
-          }
-        });
+        );
+        // console.log(accountData);
+
+        if (response.data.id !== null) {
+          // Get family members
+          const family_members = await getFamilyMembers(response.data.id);
+          notif({
+            timeout: 1,
+            spinner: false,
+            message: "Login successful",
+            caption: "100%",
+          });
+          // Store response in session storage
+          sessionStorage.setItem("account", JSON.stringify(response.data));
+          sessionStorage.setItem("family_members", JSON.stringify(family_members));
+          // Navigate to Profiles page
+          $router.push("/profiles");
+        }
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 401) {
+          notif({
+            timeout: 1,
+            color: "negative",
+            spinner: false,
+            message: "Login failed",
+            caption: "100%",
+          });
+        } else {
+          $q.notify({
+            color: "negative",
+            position: "top",
+            message: "Loading failed",
+            icon: "report_problem",
+          });
+        }
+      }
     };
 
     return {
