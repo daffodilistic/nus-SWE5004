@@ -1,6 +1,9 @@
 <template>
   <q-page class="bg-grey-10">
-    <WebSocketComponent class="hidden"></WebSocketComponent>
+    <WebSocketComponent
+      class="hidden"
+      @onWebSocketMessage="onWebSocketMessage"
+    ></WebSocketComponent>
     <div class="row">
       <div class="col">
         <h3 class="text-white text-center">
@@ -116,6 +119,8 @@ export default defineComponent({
     const dietForToday = ref([]);
     const getDietList = ref(Object.keys(dietList));
     const loading = ref(false);
+    const waitForDevice = ref(false);
+    const deviceNotification = ref(false);
     // const getDietList = () => {
     //   console.log(Object.keys(dietList));
     //   return Object.keys(dietList);
@@ -223,23 +228,50 @@ export default defineComponent({
       }
     },
     async analyzeMyData() {
-      // TODO need to call https://19k36m49u9.execute-api.us-east-1.amazonaws.com/prod/updateurineph
+      this.waitForDevice = true;
       //this.loading = true;
-      this.$q.notify({
+      this.deviceNotification = this.$q.notify({
         message: "Waiting for device...",
         type: "warning",
         spinner: true,
         timeout: 0,
+        group: false,
         actions: [
           {
             label: "Cancel",
             color: "red",
             handler: () => {
-              /* ... */
+              this.waitForDevice = false;
             },
           },
         ],
       });
+    },
+    onWebSocketMessage(message) {
+      console.log("[onWebSocketMessage] Message recieved!", message);
+      if (this.waitForDevice) {
+        this.waitForDevice = false;
+        this.deviceNotification({ timeout: 1 });
+        this.$q.notify({
+          message: "Device data recieved! Syncing with server...",
+          type: "positive",
+          timeout: 1000,
+        });
+        // Update PH data for ML service
+        // TODO need to call https://19k36m49u9.execute-api.us-east-1.amazonaws.com/prod/updateurineph
+        const phValue = 4 + Math.floor(Math.random() * 4)  + Math.random();
+        const payload = {
+          person_id: this.currentUser.person_id,
+          urine_ph: phValue.toFixed(2).toString(),
+        };
+        console.log("Sending payload", payload);
+        try {
+          const response = apiML.post("/updateurineph", payload);
+          console.log("Success!", response);
+        } catch (error) {
+          console.log(error);
+        }
+      }
     },
   },
   components: {

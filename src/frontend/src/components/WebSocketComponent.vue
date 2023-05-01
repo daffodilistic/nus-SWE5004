@@ -5,30 +5,28 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, defineEmits, ref } from "vue";
 
 export default defineComponent({
-  name: 'WebSocketComponent',
-  setup() {
+  name: "WebSocketComponent",
+  setup(props, context) {
     console.log("WebSocket component loaded");
-
-    const eventsFromServer = ref([
-      // { data: 'hii', time: '32234' },
-      // { data: 'hii324', time: '3223422' },
-    ]);
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "YOUR_WEBSOCKET_URL"
-        : "ws://localhost:8000/events";
-    let familyMembers = ref([]);
+    // const emits = defineEmits(["wss_message"]);
+    const eventsFromServer = ref([]);
+    // const serverUrl =
+    //   process.env.NODE_ENV === "production"
+    //     ? "ws://localhost:8000/events"
+    //     : "wss://emulator.mariotoilet.xyz/events";
+    const serverUrl = "wss://emulator.mariotoilet.xyz/events";
 
     const socket = new WebSocket(serverUrl);
     socket.addEventListener("open", (event) => {
       console.log("Connected to server");
     });
 
-    socket.addEventListener("message", function (event) {
+    socket.addEventListener("message", (event) => {
       console.log("Message from server ", event.data);
+      context.emit('onWebSocketMessage', event.data);
       eventsFromServer.value.push({ time: new Date(), data: event.data });
     });
 
@@ -36,5 +34,5 @@ export default defineComponent({
       eventsFromServer,
     };
   },
-})
+});
 </script>
