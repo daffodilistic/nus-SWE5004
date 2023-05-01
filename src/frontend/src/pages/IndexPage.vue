@@ -1,6 +1,5 @@
 <template>
   <q-page class="bg-grey-10">
-    <WebSocketComponent class="hidden"></WebSocketComponent>
     <div class="row fixed-center">
       <div class="col column">
         <h4 class="q-my-sm self-center text-white">Welcome to MarioToilet</h4>
@@ -21,10 +20,6 @@
   max-width: 250px
 </style>
 
-<script setup>
-import WebSocketComponent from "src/components/WebSocketComponent.vue";
-</script>
-
 <script>
 import { defineComponent, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -44,7 +39,6 @@ export default defineComponent({
         register() {
             this.$router.push("/register");
         },
-    },
-    components: { WebSocketComponent }
+    }
 });
 </script>

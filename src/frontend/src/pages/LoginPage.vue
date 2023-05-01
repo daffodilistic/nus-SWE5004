@@ -1,6 +1,5 @@
 <template>
   <q-page class="bg-grey-10">
-    <WebSocketComponent class="hidden"></WebSocketComponent>
     <div class="row fixed-center">
       <div class="col column">
         <h4 class="q-my-sm self-center text-white">MarioToilet Login</h4>
@@ -46,11 +45,8 @@
   max-width: 250px
 </style>
 
-<script setup>
-import WebSocketComponent from "src/components/WebSocketComponent.vue";
-</script>
-
 <script>
+import WebSocketComponent from "src/components/WebSocketComponent.vue";
 import { defineComponent, ref } from "vue";
 import { useQuasar } from "quasar";
 import { api } from "boot/axios";

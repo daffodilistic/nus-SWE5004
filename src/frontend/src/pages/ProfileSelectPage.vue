@@ -1,5 +1,6 @@
 <template>
   <q-page class="bg-blue-grey">
+    <WebSocketComponent class="hidden"></WebSocketComponent>
     <div class="row">
       <div class="col">
         <h3 class="text-white text-center">Welcome! Select a User Profile</h3>
@@ -13,6 +14,7 @@
             :key="n"
             style="height: auto; width: auto"
             class="q-ma-sm q-pa-sm bg-amber-2 items-center justify-center shadow-4"
+            @click="selectUser(n)"
           >
 
             <q-avatar size="12em">
@@ -65,12 +67,15 @@
 </style>
 
 <script>
+import WebSocketComponent from "src/components/WebSocketComponent.vue";
 import { defineComponent, onMounted, ref } from "vue";
 import { api } from "boot/axios";
 
 export default defineComponent({
   name: "ProfileSelectPage",
   setup() {
+    const familyMembers = ref([]);
+
     onMounted(() => {
       // Get family members from session storage
       const accountUsers = JSON.parse(sessionStorage.getItem("family_members") ?? "[]");
@@ -85,7 +90,6 @@ export default defineComponent({
       loading: ref(false),
       newUserName: ref(""),
       familyMembers,
-      eventsFromServer,
     };
   },
   methods: {
@@ -95,6 +99,11 @@ export default defineComponent({
     },
     addUser() {
       this.showAddUserDialog = true;
+    },
+    selectUser(user) {
+      console.log("Selected user is", user);
+      sessionStorage.setItem("current_user", JSON.stringify(user));
+      this.$router.push("/data_collect");
     },
     async addNewUser() {
       this.loading = true;
@@ -114,6 +123,9 @@ export default defineComponent({
         this.showAddUserDialog = false;
       }
     },
+  },
+  components: {
+    WebSocketComponent
   },
 });
 </script>
