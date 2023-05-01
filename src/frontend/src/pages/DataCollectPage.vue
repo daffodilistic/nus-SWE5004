@@ -6,52 +6,78 @@
         <h3 class="text-white text-center">
           Welcome {{ currentUser.person_name }}!
         </h3>
+        <h6 class="text-white text-center q-mb-sm">Please select an option</h6>
       </div>
     </div>
     <div class="row">
-      <q-scroll-area style="min-height: 18em; min-width: 100vw">
-        <div class="row no-wrap items-center justify-center">
-          <div
-            v-for="n in familyMembers"
-            :key="n"
-            style="height: auto; width: auto"
-            class="q-ma-sm q-pa-sm bg-amber-2 items-center justify-center shadow-4"
-            @click="selectUser(n)"
-          >
-            <q-avatar size="12em">
-              <!-- <img src="https://cdn.quasar.dev/img/avatar.png" /> -->
-              <q-icon size="2em" name="account_circle" />
-            </q-avatar>
-            <h5 class="q-mt-sm q-mb-sm text-center text-black">
-              {{ n.person_name }}
-            </h5>
-          </div>
+      <div class="col column items-center">
+        <div class="col">
+          <q-btn
+            @click="keyInDiet"
+            color="primary"
+            label="Key In Today's Diet"
+          ></q-btn>
         </div>
-      </q-scroll-area>
-    </div>
-    <div class="row justify-between">
-      <div class="col-auto q-ma-md">
-        <q-btn class="" @click="switchUser" color="secondary" label="Switch User" />
+        <q-space class="q-my-sm" />
+        <div class="col">
+          <q-btn
+            @click="analyzeMyData"
+            color="secondary"
+            label="Analyze My Data"
+          ></q-btn>
+        </div>
+        <q-space class="q-my-sm" />
+        <div class="col">
+          <q-btn color="info" label="View Past Data"></q-btn>
+        </div>
+        <q-space class="q-my-lg" />
+        <div class="col">
+          <q-btn
+            class=""
+            @click="switchUser"
+            color="negative"
+            label="Switch User"
+          />
+        </div>
       </div>
     </div>
-    <q-dialog v-model="showAddUserDialog" persistent>
-      <q-card style="min-width: 350px">
+    <q-dialog v-model="showDietDialog" persistent>
+      <q-card style="min-width: 32em; min-height: 14em">
         <q-card-section>
-          <div class="text-h6">Enter user name</div>
+          <div class="text-h6">Key in Today's Diet</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-input
-            dense
-            v-model="newUserName"
-            autofocus
-            @keyup.enter="showAddUserDialog = false"
+          <q-select
+            filled
+            v-model="dietForToday"
+            multiple
+            :options="getDietList"
+            use-chips
+            stack-label
+            label="Select your foods taken for today"
           />
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Add User" :loading="loading" @click="addNewUser" />
+          <q-btn flat label="Confirm" :loading="loading" @click="confirmDiet" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="showRecommendedDietDialog" persistent>
+      <q-card style="min-width: 32em; min-height: 14em">
+        <q-card-section>
+          <div class="text-h6">Your Recommended Diet</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <p class="">Your urine is acidic. We recommend you to have more of the following foods in your diet to balance your pH level.</p>
+          <p class="text-bold">{{recommendedDiet}}</p>
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Close" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -68,16 +94,29 @@
   
   <script>
 import { defineComponent, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import WebSocketComponent from "src/components/WebSocketComponent.vue";
+import dietList from "src/libs/dietList.js";
+import { api, apiML } from "boot/axios";
+import QSpinnerGears from 'quasar/src/components/spinner/QSpinnerGears.js';
 
 const currentUser = ref({
-  person_name: "John",
+  person_name: "Wu Ming Zhi (无名子)",
 });
+const recommendedDiet = ref("Chicken, Cake, Banana");
 
 export default defineComponent({
   name: "DataCollectPage",
   setup() {
-    const $router = useRouter();
+    // const $router = useRouter();
+    const showDietDialog = ref(false);
+    const showRecommendedDietDialog = ref(false);
+    const dietForToday = ref([]);
+    const getDietList = ref(Object.keys(dietList));
+    const loading = ref(false);
+    // const getDietList = () => {
+    //   console.log(Object.keys(dietList));
+    //   return Object.keys(dietList);
+    // };
 
     onMounted(() => {
       // Set currentUser to data from session storage
@@ -86,12 +125,100 @@ export default defineComponent({
 
     return {
       currentUser,
+      showDietDialog,
+      showRecommendedDietDialog,
+      recommendedDiet,
+      dietForToday,
+      getDietList,
+      loading,
     };
   },
   methods: {
-    // register() {
-    //   this.$router.push("/register");
-    // },
+    switchUser() {
+      sessionStorage.removeItem("current_user");
+      this.$router.push("/profiles");
+    },
+    keyInDiet() {
+      this.showDietDialog = true;
+    },
+    async confirmDiet() {
+      this.loading = true;
+
+      // Pack data to send to backend
+      const payload = {
+        person_id: this.currentUser.person_id,
+      };
+
+      this.getDietList.forEach((key) => {
+        if (this.dietForToday.indexOf(key) > -1) {
+          payload[key] = 1;
+        } else {
+          payload[key] = 0;
+        }
+      });
+
+      // console.log(payload);
+
+      try {
+        // Insert dietary data to database
+        const response = await apiML.post("/insertDiet", payload);
+        // console.log(response);
+
+        this.showDietDialog = false;
+        this.dietForToday = [];
+        this.$q.notify({
+          group: false,
+          color: "positive",
+          message: "Diet for today has been recorded!",
+          timeout: 5000,
+        });
+
+        const spinnerHandle = this.$q.notify({
+          group: false,
+          spinner: QSpinnerGears,
+          message: "Working...",
+          timeout: 0,
+        });
+
+        // Get predicted pH value
+        const dietData = payload;
+        delete dietData.person_id;
+        const mlResponse = await apiML.post("/predictph", dietData);
+        console.log(mlResponse.data);
+        
+        // Get recommended diet
+        const predictedPh = mlResponse.data.body.predicted_urine;
+        console.log("Predicted pH is ", predictedPh);
+        const dietResponse = await apiML.post("/getRecommendedDiet", predictedPh);
+        console.log(dietResponse.data);
+        this.recommendedDiet = dietResponse.data.body.recommended_items.join(", ");
+
+        this.loading = false;
+        spinnerHandle({
+          timeout: 1,
+        });
+        this.showRecommendedDietDialog = true;
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 401) {
+          this.$q.notify({
+            color: "negative",
+            message: "Error in recording diet for today!",
+          });
+        } else {
+          this.$q.notify({
+            color: "negative",
+            position: "top",
+            message: "Loading failed",
+            icon: "report_problem",
+          });
+        }
+      }
+    },
+    async analyzeMyData() {},
+  },
+  components: {
+    WebSocketComponent,
   },
 });
 </script>
