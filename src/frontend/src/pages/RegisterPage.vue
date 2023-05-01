@@ -75,10 +75,12 @@
 import { defineComponent, ref } from "vue";
 import { useQuasar } from "quasar";
 import { api } from "boot/axios";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "RegisterPage",
   setup() {
+    const $router = useRouter();
     const $q = useQuasar();
     const username = ref(null);
     const password = ref(null);
@@ -104,15 +106,15 @@ export default defineComponent({
         .then((response) => {
           if (response !== null && response.lastRowId !== null) {
             notif({
-              timeout: 1,
+              color: "positive",
+              icon: "check",
+              timeout: 10000,
               spinner: false,
               message: "Registration successful",
               caption: "100%",
             });
-            // Store response in session storage
-            sessionStorage.setItem("user", JSON.stringify(response));
-            // Navigate to Profiles page
-            this.$router.push("/profiles");
+            // Navigate to main page
+            $router.push("/");
           } else {
             $q.notify({
               color: "negative",
