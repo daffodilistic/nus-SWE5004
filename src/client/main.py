@@ -15,9 +15,8 @@ html = """
     </head>
     <body>
         <h1>Rasperry Pi Sensor Simulator</h1>
-        <form action="" onsubmit="sendMessage('motion')">
-            <button>Motion Detected</button>
-        </form>
+        <button onclick="sendMessage('motion')">Motion Detected</button>
+        <button onclick="sendMessage('flush')">Toilet flushed (Sample Collected)</button>
         <ul id='messages'>
         </ul>
         <script>
@@ -35,7 +34,7 @@ html = """
                 try {
                     data = {
                         "channel": "events",
-                        "message": "motion"
+                        "message": sensor_data
                     };
                     const response = await fetch("http://127.0.0.1:8000/push",
                         {
